@@ -11,11 +11,19 @@ class Desktop extends StatefulWidget {
   const Desktop({
     required this.groupedApps,
     required this.standaloneApps,
+    required this.backgroundImage,
+    this.desktopBuilder,
+    this.dockBuilder,
     super.key,
   });
 
   final Map<String, List<DesktopApp>> groupedApps;
   final List<DesktopApp> standaloneApps;
+
+  final Widget Function(DesktopItems)? desktopBuilder;
+  final Widget Function(Dock)? dockBuilder;
+
+  final ImageProvider backgroundImage;
 
   @override
   State<Desktop> createState() => _DesktopState();
@@ -104,12 +112,18 @@ class _DesktopState extends State<Desktop> {
   Widget build(BuildContext context) {
     final groupedApps = widget.groupedApps;
     final standaloneApps = widget.standaloneApps;
-    return LayoutBuilder(
-      builder: (context, constraints) => Stack(
-        fit: StackFit.expand,
-        children: [
-          if (groupedApps.isNotEmpty || standaloneApps.isNotEmpty)
-            DesktopItems(
+
+    return Scaffold(
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            fit: BoxFit.cover,
+            image: widget.backgroundImage,
+          ),
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(builder: (context, constraints) {
+            final dekstopItems = DesktopItems(
               groupedApps: groupedApps,
               standaloneApps: standaloneApps,
               onItemTap: (desktopApp) => _addWindow(
@@ -117,10 +131,8 @@ class _DesktopState extends State<Desktop> {
                 constraints.maxWidth,
                 constraints.maxHeight,
               ),
-            ),
-          ..._windows.values,
-          if (_windows.isNotEmpty)
-            Dock(
+            );
+            final dock = Dock(
               windowKeys: _windowKeys,
               minimizedWindowKeys: _minimizedWindowKeys,
               windows: _windows,
@@ -128,8 +140,24 @@ class _DesktopState extends State<Desktop> {
                 _unMinimize(key);
                 _rebuildOnChange();
               },
-            ),
-        ],
+            );
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                if (widget.desktopBuilder != null)
+                  widget.desktopBuilder!(dekstopItems)
+                else
+                  dekstopItems,
+                ..._windows.values,
+                // if (_windows.isNotEmpty)
+                if (widget.dockBuilder != null)
+                  widget.dockBuilder!(dock)
+                else
+                  dock
+              ],
+            );
+          }),
+        ),
       ),
     );
   }

@@ -29,21 +29,10 @@ class _App extends StatelessWidget {
   @override
   Widget build(BuildContext context) => const MaterialApp(
         title: 'Lumbung OS',
-        home: Scaffold(
-          body: DecoratedBox(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: mainBackgroundImage,
-              ),
-            ),
-            child: SafeArea(
-              child: Desktop(
-                groupedApps: groupedApps,
-                standaloneApps: standaloneApps,
-              ),
-            ),
-          ),
+        home: Desktop(
+          backgroundImage: mainBackgroundImage,
+          groupedApps: groupedApps,
+          standaloneApps: standaloneApps,
         ),
       );
 }
